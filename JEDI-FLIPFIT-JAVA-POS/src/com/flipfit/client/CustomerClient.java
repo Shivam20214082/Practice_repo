@@ -7,11 +7,13 @@ import com.flipfit.dao.*;
 
 import java.util.List;
 import java.util.Scanner;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class CustomerClient {
 
     private GymOwnerDAO gymOwnerDao;
-    private CustomerService customerService;
+    private final CustomerService customerService;
     private Scanner in;
     private int loggedInCustomerId; // To track the logged-in user
 
@@ -74,29 +76,21 @@ public class CustomerClient {
         }
     }
     private void bookaSlot() {
-        CustomerDAO customerDao = new CustomerDAO();
-        UserDAO userDao = new UserDAO();
-        GymOwnerDAO gymOwnerDao = new GymOwnerDAO();
-        GymCentreDAO gymCentreDao = new GymCentreDAO();
-
-        CustomerService customerService = new CustomerService(userDao,customerDao, gymOwnerDao);
-
-        Scanner scanner = new Scanner(System.in);
 
         System.out.println("--- Book a Slot ---");
-        System.out.print("Enter Booking ID: ");
-        int bookingId = scanner.nextInt();
-
-        System.out.print("Enter Customer ID: ");
-        int customerId = scanner.nextInt();
-
         System.out.print("Enter Gym ID: ");
-        int gymId = scanner.nextInt();
-
+        int gymId = in.nextInt();
         System.out.print("Enter Slot ID: ");
-        int slotId = scanner.nextInt();
+        int slotId = in.nextInt();
+        in.nextLine(); // Consume newline
+        System.out.print("Enter Booking Date (YYYY-MM-DD): ");
+        String dateStr = in.nextLine();
 
-        customerService.bookSlot(bookingId, customerId, gymId, slotId);
+        // Parse the date from the user input
+        LocalDate bookingDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // Use the existing service object to book the slot
+        customerService.bookSlot(loggedInCustomerId, gymId, slotId, bookingDate);
     }
     private void viewBookedSlots() {
         System.out.println("Viewing your booked slots...");

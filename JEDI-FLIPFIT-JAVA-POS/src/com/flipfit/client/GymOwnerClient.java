@@ -90,7 +90,7 @@ public class GymOwnerClient {
                 String city = in.nextLine();
                 System.out.print("Enter gym state: ");
                 String state = in.nextLine();
-                System.out.print("Enter gym pincode: ");
+                System.out.print("Enter gym pin code: ");
                 String pincode = in.nextLine();
 
                 GymCentre newGym = new GymCentre(owner.getUserId(), name, null, capacity, false, city, state, pincode, null);
@@ -128,7 +128,7 @@ public class GymOwnerClient {
             System.out.println("3. Change Password");
             System.out.println("4. Change Phone Number");
             System.out.println("5. Change City");
-            System.out.println("6. Change Pincode");
+            System.out.println("6. Change Pin Code");
             System.out.println("7. Change PAN");
             System.out.println("8. Change Aadhaar");
             System.out.println("9. Change GST");

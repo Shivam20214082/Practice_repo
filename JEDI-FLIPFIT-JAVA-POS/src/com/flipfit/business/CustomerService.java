@@ -11,19 +11,16 @@ public class CustomerService {
 
     private CustomerDAO customerDao;
     private UserDAO userDao;
-    private GymCentreDAO gymCentreDao;
-    private BookingDAO bookingDao;
 
     public CustomerService(UserDAO userDao, CustomerDAO customerDao,GymOwnerDAO gymOwnerDao) {
         this.customerDao = customerDao;
         this.userDao = userDao;
-        this.bookingDao = bookingDao; // Inject BookingDAO
     }
 
     public List<Booking> viewBookedSlots(int customerId) {
         System.out.println("Fetching your booked slots...");
         // Call the new database-based method from BookingDAO
-        return bookingDao.getBookingsByCustomerId(customerId);
+        return customerDao.getBookingsByCustomerId(customerId);
     }
 
     public List<GymCentre> viewCenters() {
@@ -32,26 +29,24 @@ public class CustomerService {
         return customerDao.getApprovedGyms();
     }
 
-    public void bookSlot(int bookingId, int customerId, int gymId, int slotId) {
+    public void bookSlot(int customerId, int gymId, int slotId, LocalDate bookingDate) {
         System.out.println("Booking your slot...");
-
+        System.out.println("GymId: " + gymId + ", SlotId: " + slotId + ", BookingDate: " + bookingDate + "customerid: " + customerId);
         // Create a new Booking object with the provided details
         Booking newBooking = new Booking(
-                bookingId,
                 customerId,
                 gymId,
                 slotId,
                 "BOOKED", // Default status
-                LocalDate.now(),
+                bookingDate, // Use the provided date
                 LocalTime.now()
         );
 
-        // Call the database-based method in BookingDAO
+        // Call the database-based method in the DAO
         customerDao.bookSlot(newBooking);
 
         System.out.println("Slot booked successfully!");
     }
-
     public void makePayments(int customerId, int paymentType, String paymentInfo) {
         System.out.println("Processing payment of type: " + paymentType + " with account: " + paymentInfo);
         // Fetch the customer to update their payment details

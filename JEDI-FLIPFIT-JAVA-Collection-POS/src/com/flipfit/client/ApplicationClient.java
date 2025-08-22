@@ -6,7 +6,6 @@ import com.flipfit.business.CustomerService;
 import com.flipfit.business.GymOwnerService;
 import com.flipfit.dao.AdminDAO;
 import com.flipfit.dao.CustomerDAO;
-import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.GymOwnerDAO;
 import com.flipfit.dao.UserDAO;
 

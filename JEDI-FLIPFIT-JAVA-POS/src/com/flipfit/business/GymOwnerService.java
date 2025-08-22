@@ -3,7 +3,6 @@ package com.flipfit.business;
 import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymOwnerDAO;
 import com.flipfit.dao.UserDAO;
-import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.bean.GymCentre;
 import com.flipfit.bean.User;
 import com.flipfit.bean.GymOwner;

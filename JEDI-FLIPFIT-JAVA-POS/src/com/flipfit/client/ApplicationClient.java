@@ -7,7 +7,6 @@ import com.flipfit.business.CustomerService;
 import com.flipfit.business.GymOwnerService;
 import com.flipfit.dao.AdminDAO;
 import com.flipfit.dao.CustomerDAO;
-import com.flipfit.dao.GymCentreDAO;
 import com.flipfit.dao.GymOwnerDAO;
 import com.flipfit.dao.UserDAO;
 
@@ -20,9 +19,6 @@ public class ApplicationClient {
 
     private final Scanner scanner = new Scanner(System.in);
     private final AuthenticationService authenticationService;
-    private final AdminService adminService;
-    private final GymOwnerService gymOwnerService;
-    private final CustomerService customerService;
     private final UserDAO userDao;
     private final AdminDAO adminDao;
     private final GymOwnerDAO gymOwnerDao;
@@ -43,9 +39,9 @@ public class ApplicationClient {
         this.customerDao = customerDao;
 
         this.authenticationService = new AuthenticationService(this.userDao,this.customerDao,this.gymOwnerDao);
-        this.adminService = new AdminService(this.adminDao, this.userDao,this.customerDao,this.gymOwnerDao);
-        this.gymOwnerService = new GymOwnerService(this.userDao,this.customerDao,this.gymOwnerDao);
-        this.customerService = new CustomerService(this.userDao,this.customerDao,this.gymOwnerDao);
+        AdminService adminService = new AdminService(this.adminDao, this.userDao, this.customerDao, this.gymOwnerDao);
+        GymOwnerService gymOwnerService = new GymOwnerService(this.userDao, this.customerDao, this.gymOwnerDao);
+        CustomerService customerService = new CustomerService(this.userDao, this.customerDao, this.gymOwnerDao);
     }
 
     public void login() {
@@ -92,7 +88,7 @@ public class ApplicationClient {
         System.out.print("Enter your city: ");
         String city = scanner.nextLine();
 
-        System.out.print("Enter your pincode: ");
+        System.out.print("Enter your Pin Code: ");
         int pinCode = scanner.nextInt();
         scanner.nextLine(); // Consume newline
 
