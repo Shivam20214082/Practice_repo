@@ -14,13 +14,16 @@ public class FlipFitScanner {
     public static void main(String args[]) {
         // Instantiate the DAOs first
         UserDAO userDao = new UserDAO();
-        AdminDAO adminDao = new AdminDAO();
+        ;
         GymOwnerDAO gymOwnerDao = new GymOwnerDAO();
         CustomerDAO customerDao = new CustomerDAO();
-        GymCentreDAO gymCentreDao = new GymCentreDAO();
+
+        // AdminDAO constructor requires other DAOs
+        AdminDAO adminDao = new AdminDAO(userDao, customerDao, gymOwnerDao);
+
 
         // Pass the DAOs to the ApplicationClient's constructor
-        ApplicationClient applicationClient = new ApplicationClient(userDao, adminDao, gymOwnerDao, customerDao,gymCentreDao);
+        ApplicationClient applicationClient = new ApplicationClient(userDao, adminDao, gymOwnerDao, customerDao);
 
         final Scanner in = new Scanner(System.in);
         System.out.println("Welcome to flip fit application\n");

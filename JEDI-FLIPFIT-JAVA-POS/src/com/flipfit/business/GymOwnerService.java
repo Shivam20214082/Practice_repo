@@ -4,32 +4,33 @@ import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymOwnerDAO;
 import com.flipfit.dao.UserDAO;
 import com.flipfit.dao.GymCentreDAO;
+import com.flipfit.bean.GymCentre;
+import com.flipfit.bean.User;
+import com.flipfit.bean.GymOwner;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 public class GymOwnerService {
 
     private static final Scanner in = new Scanner(System.in);
     private GymOwnerDAO gymOwnerDao;
-    private CustomerDAO customerDao;
     private UserDAO userDao;
-    private GymCentreDAO gymCentreDao;
 
-    public GymOwnerService(GymOwnerDAO gymOwnerDao, UserDAO userDao, CustomerDAO customerDao, GymCentreDAO gymCentreDao) {
+    public GymOwnerService(UserDAO userDao, CustomerDAO customerDao,GymOwnerDAO gymOwnerDao) {
         this.gymOwnerDao = gymOwnerDao;
         this.userDao = userDao;
-        this.customerDao = customerDao;
-        this.gymCentreDao = gymCentreDao;
-    }
-    public void addCentre(String[] gymData) {
-        gymOwnerDao.addGym(gymData);
-        System.out.println("Adding new gym centre: " + gymData[2]);
     }
 
-    public void viewGymDetails(String ownerId) {
+    public void addCentre(GymCentre gymData) {
+        gymOwnerDao.addGym(gymData);
+        System.out.println("Adding new gym centre: " + gymData.getCentreName());
+    }
+
+    public void viewGymDetails(int ownerId) {
         System.out.println("Fetching details for all your gym centres...");
-        List<String[]> gyms = gymOwnerDao.getGymsByOwnerId(ownerId);
+        List<GymCentre> gyms = gymOwnerDao.getGymsByOwnerId(ownerId);
 
         System.out.println("------------------------------------------------------------------");
         System.out.printf("%-15s %-20s %-20s %n", "Gym ID", "Name", "Location");
@@ -37,17 +38,29 @@ public class GymOwnerService {
         if (gyms.isEmpty()) {
             System.out.println("No gym centers found.");
         } else {
-            for (String[] gym : gyms) {
-                System.out.printf("%-15s %-20s %-20s %n", gym[0], gym[2], gym[5] + ", " + gym[6]);
+            for (GymCentre gym : gyms) {
+                System.out.printf("%-15s %-20s %-20s %n", gym.getCentreId(), gym.getCentreName(), gym.getCity() + ", " + gym.getState());
             }
         }
         System.out.println("------------------------------------------------------------------");
     }
 
     public void viewCustomers() {
-        System.out.println("Fetching customer list for your gym centres...");
-        // This would call a method in a CustomerDAO
-        System.out.println("No customers found.");
+        System.out.println("Fetching customer list...");
+        List<User> customers = userDao.getAllCustomers();
+
+        if (customers.isEmpty()) {
+            System.out.println("No customers found.");
+            return;
+        }
+
+        System.out.println("----------------------------------------");
+        System.out.printf("%-10s %-20s %n", "ID", "Name");
+        System.out.println("----------------------------------------");
+        for (User customer : customers) {
+            System.out.printf("%-10d %-20s %n", customer.getUserId(), customer.getFullName());
+        }
+        System.out.println("----------------------------------------");
     }
 
     public void viewPayments() {
@@ -55,12 +68,40 @@ public class GymOwnerService {
         System.out.println("No payments found.");
     }
 
-    public void editGymOwnerDetails(String ownerId, int choice, String newValue) {
-        gymOwnerDao.updateGymOwnerDetails(ownerId, choice, newValue);
+    public void editGymOwnerDetails(int ownerId, int choice, String newValue) {
+        // Fetch the existing user and gym owner data from the database
+        Optional<User> userOptional = userDao.getUserById(ownerId);
+        Optional<GymOwner> gymOwnerOptional = gymOwnerDao.getGymOwnerById(ownerId);
+
+        if (!userOptional.isPresent() || !gymOwnerOptional.isPresent()) {
+            System.out.println("Error: User or Gym Owner not found.");
+            return;
+        }
+
+        User user = userOptional.get();
+        GymOwner gymOwner = gymOwnerOptional.get();
+
+        // Update the correct field based on user choice
+        switch (choice) {
+            case 1: user.setFullName(newValue); break;
+            case 2: user.setEmail(newValue); break;
+            case 3: user.setPassword(newValue); break;
+            case 4: user.setUserPhone(Long.parseLong(newValue)); break;
+            case 5: user.setCity(newValue); break;
+            case 6: user.setPinCode(Integer.parseInt(newValue)); break;
+            case 7: gymOwner.setPan(newValue); break;
+            case 8: gymOwner.setAadhaar(newValue); break;
+            case 9: gymOwner.setGst(newValue); break;
+            default: System.out.println("Invalid choice for update."); return;
+        }
+
+        // Persist the changes to the database by calling the DAOs
+        userDao.updateUser(user);
+        gymOwnerDao.updateGymOwnerDetails(gymOwner);
         System.out.println("Owner details updated successfully.");
     }
 
-    public void displayGymOwnerMenu(String loggedInOwnerId) {
+    public void displayGymOwnerMenu(int loggedInOwnerId) {
         boolean exitOwnerMenu = false;
         while (!exitOwnerMenu) {
             System.out.println("\n*** Welcome, Gym Owner! ***");
@@ -80,19 +121,20 @@ public class GymOwnerService {
                     boolean continueAdding = true;
                     while (continueAdding) {
                         System.out.println("\n--- Add a New Gym Centre ---");
-                        System.out.print("Enter gym ID: ");
-                        String gymId = in.nextLine();
                         System.out.print("Enter gym name: ");
                         String name = in.nextLine();
                         System.out.print("Enter gym capacity: ");
-                        String capacity = in.nextLine();
+                        int capacity = in.nextInt();
+                        in.nextLine();
                         System.out.print("Enter gym city: ");
                         String city = in.nextLine();
                         System.out.print("Enter gym state: ");
                         String state = in.nextLine();
+                        System.out.print("Enter gym pincode: ");
+                        String pincode = in.nextLine();
 
-                        String[] newGymData = new String[]{gymId, loggedInOwnerId, name, capacity, "false", city, state};
-                        addCentre(newGymData);
+                        GymCentre newGym = new GymCentre(0, loggedInOwnerId, name, null, capacity, false, city, state, pincode, null);
+                        addCentre(newGym);
 
                         System.out.println("Gym Centre with name " + name + " and location " + city + ", " + state + " added. Do you want to add another? (yes/no)");
                         String response = in.nextLine();
@@ -126,61 +168,15 @@ public class GymOwnerService {
                         System.out.println("10. Back to main menu");
                         System.out.print("Enter your choice: ");
                         int editChoice = in.nextInt();
-                        in.nextLine(); // Consume newline
-                        String newValue;
-
-                        switch (editChoice) {
-                            case 1:
-                                System.out.print("Enter new name: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 1, newValue);
-                                break;
-                            case 2:
-                                System.out.print("Enter new email: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 2, newValue);
-                                break;
-                            case 3:
-                                System.out.print("Enter new password: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 3, newValue);
-                                break;
-                            case 4:
-                                System.out.print("Enter new phone number: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 4, newValue);
-                                break;
-                            case 5:
-                                System.out.print("Enter new city: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 5, newValue);
-                                break;
-                            case 6:
-                                System.out.print("Enter new pincode: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 6, newValue);
-                                break;
-                            case 7:
-                                System.out.print("Enter new PAN: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 7, newValue);
-                                break;
-                            case 8:
-                                System.out.print("Enter new Aadhaar: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 8, newValue);
-                                break;
-                            case 9:
-                                System.out.print("Enter new GST: ");
-                                newValue = in.nextLine();
-                                editGymOwnerDetails(loggedInOwnerId, 9, newValue);
-                                break;
-                            case 10:
-                                continueEditing = false;
-                                break;
-                            default:
-                                System.out.println("Invalid choice. Please try again.");
+                        in.nextLine();
+                        if (editChoice == 10) {
+                            continueEditing = false;
+                            break;
                         }
+
+                        System.out.print("Enter new value: ");
+                        String newValue = in.nextLine();
+                        editGymOwnerDetails(loggedInOwnerId, editChoice, newValue);
                     }
                     break;
                 case 6:

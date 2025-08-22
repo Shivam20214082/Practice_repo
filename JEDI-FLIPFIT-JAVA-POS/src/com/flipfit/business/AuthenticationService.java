@@ -1,42 +1,74 @@
 package com.flipfit.business;
 
 import com.flipfit.dao.UserDAO;
+import com.flipfit.dao.CustomerDAO;
+import com.flipfit.dao.GymOwnerDAO;
+import com.flipfit.bean.User;
+import com.flipfit.bean.Customer;
+import com.flipfit.bean.GymOwner;
+
+import java.util.Optional;
 
 public class AuthenticationService {
 
-    private UserDAO userDao;
+    private final UserDAO userDao;
+    private final CustomerDAO customerDao;
+    private final GymOwnerDAO gymOwnerDao;
 
-    public AuthenticationService() {
-        this.userDao = this.userDao;
-    }
-
-    public AuthenticationService(UserDAO userDao) {
+    public AuthenticationService(UserDAO userDao, CustomerDAO customerDao, GymOwnerDAO gymOwnerDao) {
         this.userDao = userDao;
+        this.customerDao = customerDao;
+        this.gymOwnerDao = gymOwnerDao;
     }
 
-    public String[] login(String email, String password) {
-        // Authenticate user by checking against all users in the DAO
-        for (String[] user : userDao.getAllUsers()) {
-            if (user[3].equals(email) && user[4].equals(password)) {
-                return user;
+    public User login(String email, String password) {
+        // Authenticate user by checking against the database
+        Optional<User> userOptional = userDao.getUserByEmailAndPassword(email, password);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            // Check if the user is a customer or a gym owner to determine the role
+            if (customerDao.getCustomerById(user.getUserId()).isPresent()) {
+                user.setRole("CUSTOMER");
+            } else if (gymOwnerDao.getGymOwnerById(user.getUserId()).isPresent()) {
+                user.setRole("OWNER");
+            } else {
+                // If the user ID exists in the User table but not in Customer or GymOwner,
+                // you might assume they are an Admin.
+                user.setRole("ADMIN");
             }
+            return user;
         }
         return null;
     }
 
-    public void registerCustomer(String name, String email, String password, String phone) {
-        // Here you would generate a unique ID for the new customer
-        String newId = String.valueOf(userDao.getAllUsers().size() + 1);
-        String[] newCustomer = {"CUSTOMER", newId, name, email, password, phone, "N/A", "N/A"};
-        userDao.getAllUsers().add(newCustomer);
-        System.out.println("Customer registration received for " + name);
+    public void registerCustomer(String fullName, String email, String password, long userPhone, String city, int pinCode, int paymentType, String paymentInfo) {
+        // Create a new User object and persist it to the User table
+        User newUser = new User(fullName, email, password, userPhone, city, pinCode);
+        int userId = userDao.addUser(newUser);
+
+        if (userId != -1) {
+            // Create a new Customer object and link it to the new user ID
+            Customer newCustomer = new Customer(userId, paymentType, paymentInfo);
+            customerDao.addCustomer(newCustomer);
+            System.out.println("Customer registration received for " + fullName);
+        } else {
+            System.out.println("User registration failed.");
+        }
     }
 
-    public void registerGymOwner(String name, String email, String password, String phone, String aadhaar, String pan, String gst) {
-        // Here you would generate a unique ID for the new gym owner
-        String newId = String.valueOf(userDao.getAllUsers().size() + 1);
-        String[] newOwner = {"OWNER", newId, name, email, password, phone, "N/A", "N/A", pan, aadhaar, gst, "false"};
-        userDao.getAllUsers().add(newOwner);
-        System.out.println("Gym owner registration received for " + name);
+    public void registerGymOwner(String fullName, String email, String password, long userPhone, String city, int pinCode, String aadhaar,String pan, String gst) {
+        // Create a new User object and persist it to the User table
+        User newUser = new User(fullName, email, password, userPhone, city, pinCode);
+        int userId = userDao.addUser(newUser);
+
+        if (userId != -1) {
+            // Create a new GymOwner object and link it to the new user ID
+            GymOwner newOwner = new GymOwner(userId, pan, aadhaar, gst,false);
+            gymOwnerDao.addGymOwner(newOwner);
+            System.out.println("Gym owner registration received for " + fullName);
+        } else {
+            System.out.println("User registration failed.");
+        }
     }
 }

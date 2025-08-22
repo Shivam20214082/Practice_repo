@@ -5,7 +5,7 @@ import com.flipfit.dao.AdminDAO;
 import com.flipfit.dao.CustomerDAO;
 import com.flipfit.dao.GymOwnerDAO;
 import com.flipfit.dao.UserDAO;
-import com.flipfit.dao.GymCentreDAO;
+
 
 import java.util.Scanner;
 
@@ -14,8 +14,8 @@ public class AdminClient {
     private final AdminService adminService;
     private final Scanner in;
 
-    public AdminClient(AdminDAO adminDao, CustomerDAO customerDao, UserDAO userDao, GymOwnerDAO gymOwnerDao,GymCentreDAO gymCentreDao) {
-        this.adminService = new AdminService(adminDao, customerDao, userDao, gymOwnerDao,gymCentreDao);
+    public AdminClient(AdminDAO adminDao, UserDAO userDao, CustomerDAO customerDao, GymOwnerDAO gymOwnerDao) {
+        this.adminService = new AdminService(adminDao, userDao,customerDao, gymOwnerDao);
         this.in = new Scanner(System.in);
     }
 
@@ -62,7 +62,7 @@ public class AdminClient {
                 case 7:
                     System.out.print("Enter gym ID to approve: ");
                     String gymId = in.nextLine();
-                    adminService.approveGymRequest(gymId);
+                    adminService.approveGymRequest(Integer.parseInt(gymId));
                     break;
                 case 8:
                     System.out.print("Enter user ID to delete: ");

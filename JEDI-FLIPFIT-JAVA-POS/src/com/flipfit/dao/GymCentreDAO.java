@@ -42,4 +42,5 @@ public class GymCentreDAO {
                 .filter(gym -> gym[4].equals("true"))
                 .collect(Collectors.toList());
     }
+
 }

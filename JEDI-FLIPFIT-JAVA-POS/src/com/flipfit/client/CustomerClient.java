@@ -1,6 +1,7 @@
 package com.flipfit.client;
 
 import com.flipfit.bean.Booking;
+import com.flipfit.bean.GymCentre;
 import com.flipfit.business.CustomerService;
 import com.flipfit.dao.*;
 
@@ -12,15 +13,15 @@ public class CustomerClient {
     private GymOwnerDAO gymOwnerDao;
     private CustomerService customerService;
     private Scanner in;
-    private String loggedInCustomerId; // To track the logged-in user
-    private GymCentreDAO gymCentreDao;
+    private int loggedInCustomerId; // To track the logged-in user
+
 
     // The constructor now receives DAOs as dependencies
-    public CustomerClient(CustomerDAO customerDAO, UserDAO userDao, String loggedInCustomerId, GymCentreDAO gymCentreDao) {
-        this.customerService = new CustomerService(customerDAO, userDao, this.gymOwnerDao, gymCentreDao);
+    public CustomerClient(CustomerDAO customerDAO, UserDAO userDao, int loggedInCustomerId) {
+        this.customerService = new CustomerService(userDao,customerDAO, this.gymOwnerDao);
         this.in = new Scanner(System.in);
         this.loggedInCustomerId = loggedInCustomerId;
-        this.gymCentreDao = gymCentreDao;
+
     }
 
     public void customerPage() {
@@ -78,7 +79,7 @@ public class CustomerClient {
         GymOwnerDAO gymOwnerDao = new GymOwnerDAO();
         GymCentreDAO gymCentreDao = new GymCentreDAO();
 
-        CustomerService customerService = new CustomerService(customerDao, userDao, gymOwnerDao, gymCentreDao);
+        CustomerService customerService = new CustomerService(userDao,customerDao, gymOwnerDao);
 
         Scanner scanner = new Scanner(System.in);
 
@@ -118,17 +119,20 @@ public class CustomerClient {
     }
 
     private void viewCenters() {
-        List<String[]> centers = customerService.viewCenters();
+        List<GymCentre> centers = customerService.viewCenters();
         if (centers.isEmpty()) {
             System.out.println("No gym centers found.");
         } else {
             System.out.println("Gym Centers:");
-            for (String[] center : centers) {
-                System.out.println("ID: " + center[0] + ", Name: " + center[2] + ", City: " + center[6]);
+            // Iterate through the list of GymCentre objects
+            for (GymCentre center : centers) {
+                // Access properties using getter methods
+                System.out.println("ID: " + center.getCentreId() +
+                        ", Name: " + center.getCentreName() +
+                        ", City: " + center.getCity());
             }
         }
     }
-
     private void makePayments() {
         System.out.println("Initiating payment process...");
         System.out.print("Enter payment type (1 for Credit Card, 2 for Debit Card, etc.): ");
@@ -137,9 +141,9 @@ public class CustomerClient {
         System.out.print("Enter account number: ");
         String paymentInfo = in.nextLine();
 
-        customerService.makePayments(paymentType, paymentInfo);
+        // Pass the logged-in customer's ID to the service method
+        customerService.makePayments(loggedInCustomerId, paymentType, paymentInfo);
     }
-
     private void editDetails() {
         boolean continueEditing = true;
         while (continueEditing) {

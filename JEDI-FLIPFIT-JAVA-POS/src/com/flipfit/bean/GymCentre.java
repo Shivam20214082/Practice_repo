@@ -1,26 +1,21 @@
 package com.flipfit.bean;
-import java.util.ArrayList;
-import java.util.List;
 
 public class GymCentre {
-
     private int centreId;
     private int ownerId;
-    private String name;
-    private List<String> slots;
+    private String centreName;
+    private String slots;
     private int capacity;
     private boolean approved;
     private String city;
     private String state;
     private String pincode;
-    private List<String> facilities;
-    public GymCentre() {
-    }
+    private String facilities;
 
-    public GymCentre(int centreId, int ownerId, String name, List<String> slots, int capacity, boolean approved, String city, String state, String pincode, List<String> facilities) {
+    public GymCentre(int centreId, int ownerId, String centreName, String slots, int capacity, boolean approved, String city, String state, String pincode, String facilities) {
         this.centreId = centreId;
         this.ownerId = ownerId;
-        this.name = name;
+        this.centreName = centreName;
         this.slots = slots;
         this.capacity = capacity;
         this.approved = approved;
@@ -30,6 +25,21 @@ public class GymCentre {
         this.facilities = facilities;
     }
 
+    // You may also need a constructor for creating new gyms, which don't have an ID yet
+    public GymCentre(int ownerId, String centreName, String slots, int capacity, boolean approved, String city, String state, String pincode, String facilities) {
+        this.ownerId = ownerId;
+        this.centreName = centreName;
+        this.slots = slots;
+        this.capacity = capacity;
+        this.approved = approved;
+        this.city = city;
+        this.state = state;
+        this.pincode = pincode;
+        this.facilities = facilities;
+    }
+
+    // Add getters and setters for all fields
+    // ...
     public int getCentreId() {
         return centreId;
     }
@@ -46,19 +56,19 @@ public class GymCentre {
         this.ownerId = ownerId;
     }
 
-    public String getName() {
-        return name;
+    public String getCentreName() {
+        return centreName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setCentreName(String centreName) {
+        this.centreName = centreName;
     }
 
-    public List<String> getSlots() {
+    public String getSlots() {
         return slots;
     }
 
-    public void setSlots(List<String> slots) {
+    public void setSlots(String slots) {
         this.slots = slots;
     }
 
@@ -102,11 +112,11 @@ public class GymCentre {
         this.pincode = pincode;
     }
 
-    public List<String> getFacilities() {
+    public String getFacilities() {
         return facilities;
     }
 
-    public void setFacilities(List<String> facilities) {
+    public void setFacilities(String facilities) {
         this.facilities = facilities;
     }
 }

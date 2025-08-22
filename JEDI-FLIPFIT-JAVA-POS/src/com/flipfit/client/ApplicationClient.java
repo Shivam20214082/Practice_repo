@@ -1,5 +1,6 @@
 package com.flipfit.client;
 
+import com.flipfit.bean.User;
 import com.flipfit.business.AdminService;
 import com.flipfit.business.AuthenticationService;
 import com.flipfit.business.CustomerService;
@@ -26,7 +27,6 @@ public class ApplicationClient {
     private final AdminDAO adminDao;
     private final GymOwnerDAO gymOwnerDao;
     private final CustomerDAO customerDao;
-    private final GymCentreDAO gymCentreDao;
 
     // Regex for email validation
     private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
@@ -36,17 +36,16 @@ public class ApplicationClient {
     private static final String PHONE_REGEX = "^[0-9]{10}$";
     private static final Pattern PHONE_PATTERN = Pattern.compile(PHONE_REGEX);
 
-    public ApplicationClient(UserDAO userDao, AdminDAO adminDao, GymOwnerDAO gymOwnerDao, CustomerDAO customerDao, GymCentreDAO gymCentreDao) {
+    public ApplicationClient(UserDAO userDao, AdminDAO adminDao, GymOwnerDAO gymOwnerDao, CustomerDAO customerDao) {
         this.userDao = userDao;
         this.adminDao = adminDao;
         this.gymOwnerDao = gymOwnerDao;
         this.customerDao = customerDao;
-        this.gymCentreDao = gymCentreDao;
 
-        this.authenticationService = new AuthenticationService(this.userDao);
-        this.adminService = new AdminService(this.adminDao, this.customerDao, this.userDao,this.gymOwnerDao, this.gymCentreDao);
-        this.gymOwnerService = new GymOwnerService(this.gymOwnerDao, this.userDao, this.customerDao,this.gymCentreDao);
-        this.customerService = new CustomerService(this.customerDao, this.userDao, this.gymOwnerDao,this.gymCentreDao);
+        this.authenticationService = new AuthenticationService(this.userDao,this.customerDao,this.gymOwnerDao);
+        this.adminService = new AdminService(this.adminDao, this.userDao,this.customerDao,this.gymOwnerDao);
+        this.gymOwnerService = new GymOwnerService(this.userDao,this.customerDao,this.gymOwnerDao);
+        this.customerService = new CustomerService(this.userDao,this.customerDao,this.gymOwnerDao);
     }
 
     public void login() {
@@ -57,21 +56,21 @@ public class ApplicationClient {
         System.out.print("Enter password: ");
         String password = scanner.nextLine();
 
-        Optional<String[]> user = Optional.ofNullable(authenticationService.login(email, password));
+        Optional<User> user = Optional.ofNullable(authenticationService.login(email, password));
 
         if (user.isPresent()) {
-            String[] userData = user.get();
-            System.out.println("Login successful! Welcome, " + userData[2] + ".");
-            String role = userData[0];
+            User userData = user.get();
+            System.out.println("Login successful! Welcome, " + userData.getFullName() + ".");
+            String role = userData.getRole();
 
             if (role.equalsIgnoreCase("CUSTOMER")) {
-                CustomerClient customerClient = new CustomerClient(customerDao, userDao, userData[1],gymCentreDao);
+                CustomerClient customerClient = new CustomerClient(customerDao, userDao, userData.getUserId());
                 customerClient.customerPage();
             } else if (role.equalsIgnoreCase("OWNER")) {
-                GymOwnerClient gymOwnerClient = new GymOwnerClient(gymOwnerDao, userDao, customerDao, userData[1],gymCentreDao);
+                GymOwnerClient gymOwnerClient = new GymOwnerClient(userDao, customerDao,gymOwnerDao, userData.getUserId());
                 gymOwnerClient.gymOwnerPage();
             } else if (role.equalsIgnoreCase("ADMIN")) {
-                AdminClient adminClient = new AdminClient(adminDao, customerDao, userDao, gymOwnerDao,gymCentreDao);
+                AdminClient adminClient = new AdminClient(adminDao, userDao,customerDao, gymOwnerDao);
                 adminClient.adminPage();
             } else {
                 System.out.println("Invalid Role for user.");
@@ -83,19 +82,30 @@ public class ApplicationClient {
 
     public void registerCustomer() {
         System.out.println("--- Customer Registration ---");
-        System.out.print("Enter your name: ");
-        String name = scanner.nextLine();
+        System.out.print("Enter your full name: ");
+        String fullName = scanner.nextLine();
 
-        String email = getValidEmailInput(); // Call validation for email
-        String password = getPasswordInput(); // Reusing method for password input
+        String email = getValidEmailInput();
+        String password = getPasswordInput();
+        long phone = Long.parseLong(getValidPhoneInput());
 
-        String phone = getValidPhoneInput(); // Call validation for phone number
+        System.out.print("Enter your city: ");
+        String city = scanner.nextLine();
 
-        System.out.println("Registration received for customer: " + name);
-        authenticationService.registerCustomer(name, email, password, phone);
+        System.out.print("Enter your pincode: ");
+        int pinCode = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        System.out.print("Enter payment type (1 for Card, 2 for UPI): ");
+        int paymentType = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
+
+        System.out.print("Enter payment info (Card number or UPI ID): ");
+        String paymentInfo = scanner.nextLine();
+
+        authenticationService.registerCustomer(fullName, email, password, phone, city, pinCode, paymentType, paymentInfo);
         System.out.println("Registration Successful");
     }
-
     public void registerOwner() {
         System.out.println("--- Gym Owner Registration ---");
         System.out.print("Enter your name: ");
@@ -104,7 +114,7 @@ public class ApplicationClient {
         String email = getValidEmailInput(); // Call validation for email
         String password = getPasswordInput(); // Reusing method for password input
 
-        String phone = getValidPhoneInput(); // Call validation for phone number
+        long phone = Long.parseLong(getValidPhoneInput()); // Call validation for phone number
 
         System.out.print("Enter your aadhaar number: ");
         String aadhaar = scanner.nextLine();
@@ -116,7 +126,7 @@ public class ApplicationClient {
         String gst = scanner.nextLine();
 
         System.out.println("Registration received for Owner: " + name);
-        authenticationService.registerGymOwner(name, email, password, phone, aadhaar, pan,gst);
+        authenticationService.registerGymOwner(name, email, password, phone,"NA",0, aadhaar, pan,gst);
         System.out.println("Registration Successful (Pending Approval)");
     }
 
